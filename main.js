@@ -1,14 +1,33 @@
-const { Client, Intents } = require('discord.js');
-//This will fetch the json file, 
-const Info = require('./INFO.json')
+//Everything under this is to setup
+const Discord = require('discord.js')
+
+const { Client, Collection, Intents } = require('discord.js');
+
+require('dotenv').config()
 
 const myIntents = new Intents();
 myIntents.add(Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES);
 
 const client = new Client({ intents: myIntents });
 
-const prefix  = Info.prefix;
+const prefix  = process.env.PREFIX;
 
+const fs = require('fs');
+
+client.commands = new Collection();
+
+const commandfiles = fs.readdirSync('./commands/').filter(file => file.endsWith('.js'))
+for(const file of commandfiles){
+    const command = require(`./commands/${file}`)
+
+    client.commands.set(command.name, command)
+}
+
+function GC(command, msg, arg) {
+    client.commands.get(command).execute(msg, arg)
+}
+
+//everything under this are commands or others
 client.once('ready', () => {
     console.log('RDS is online!');
 });
@@ -18,26 +37,14 @@ client.on('messageCreate', message =>{
     const args = message.content.slice(prefix.length).split(/ +/)
     const command = args.shift().toLowerCase();
 
-    function sendmsg(msg) {
-        message.channel.send(msg)
-    }
+    
 
     if (command === 'ping'){
-        console.log("ping command was messaged");
-        sendmsg('Pong!');
+        GC('ping', message, args)
     }
     else if (command === 'setup'){
-        console.log("setup command was messaged");
-        if (message.author.id === message.guild.ownerId){
-            const owner = message.author
-            sendmsg("you are the owner")
-            return
-        }
-        else {
-            sendmsg("you are not able to setup, please tell the owner to setup this bot")
-            return
-        }
+        GC('setup', message, args)
     };
 });
 
-client.login(Info.token);
+client.login(process.env.TOKEN);
