@@ -44,6 +44,9 @@ client.on('messageCreate', message =>{
     }
     else if (command === 'setup'){
         GC('setup', message, args)
+    }
+    else if (command === 'verify'){
+        GC(verify, message, args)
     };
 });
 
